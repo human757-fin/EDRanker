@@ -1,0 +1,246 @@
+{% extends "base.html" %}
+{% block title %}Admin{% endblock %}
+{% block main %}
+<section class="page">
+    <div class="page-header">
+        <h1>Admin</h1>
+        <p>Add brands, flavors, and drinks quickly.</p>
+    </div>
+
+    <div class="detail-grid">
+        <div class="detail-card">
+            <h3>Add brand</h3>
+            <form method="post" action="/admin/brand" class="form-stack">
+                <label>
+                    Brand name
+                    <input type="text" name="name" required>
+                </label>
+                <label>
+                    Logo URL
+                    <input type="text" name="logo_url" placeholder="https://...">
+                </label>
+                <button class="button" type="submit">Add brand</button>
+            </form>
+        </div>
+
+        <div class="detail-card">
+            <h3>Add flavor</h3>
+            <form method="post" action="/admin/flavor" class="form-stack">
+                <label>
+                    Flavor name
+                    <input type="text" name="name" required>
+                </label>
+                <button class="button" type="submit">Add flavor</button>
+            </form>
+        </div>
+    </div>
+
+    <details class="detail-card collapsible">
+        <summary>Edit brands</summary>
+        <div class="edit-grid">
+            {% for brand in brands %}
+                <form method="post" action="/admin/brand/{{ brand.id }}" class="edit-card">
+                    <label>
+                        Name
+                        <input type="text" name="name" value="{{ brand.name }}" required>
+                    </label>
+                    <label>
+                        Logo URL
+                        <input type="text" name="logo_url" value="{{ brand.logo_url or '' }}">
+                    </label>
+                    <button class="button ghost" type="submit">Save</button>
+                </form>
+            {% endfor %}
+        </div>
+    </details>
+
+    <details class="detail-card collapsible">
+        <summary>Edit flavors</summary>
+        <div class="edit-grid">
+            {% for flavor in flavors %}
+                <form method="post" action="/admin/flavor/{{ flavor.id }}" class="edit-card">
+                    <label>
+                        Name
+                        <input type="text" name="name" value="{{ flavor.name }}" required>
+                    </label>
+                    <div class="edit-actions">
+                        <button class="button ghost" type="submit">Save</button>
+                        <button class="button danger" type="submit" formaction="/admin/flavor/{{ flavor.id }}/delete">
+                            Delete
+                        </button>
+                    </div>
+                </form>
+            {% endfor %}
+        </div>
+    </details>
+
+    <div class="detail-card">
+        <h3>Add drink</h3>
+        <form method="post" action="/admin/drink" class="form-stack" enctype="multipart/form-data">
+            <label>
+                Drink name
+                <input type="text" name="name" required>
+            </label>
+            <label>
+                Brand
+                <select name="brand_id" required>
+                    <option value="">Select</option>
+                    {% for brand in brands %}
+                        <option value="{{ brand.id }}">{{ brand.name }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label>
+                Flavor
+                <select name="flavor_id" required>
+                    <option value="">Select</option>
+                    {% for flavor in flavors %}
+                        <option value="{{ flavor.id }}">{{ flavor.name }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label>
+                Description
+                <textarea name="description" rows="3"></textarea>
+            </label>
+            <label>
+                Image URL
+                <input type="text" name="image_url" placeholder="https://...">
+            </label>
+            <label>
+                Or upload image
+                <input type="file" name="image_file" accept="image/*">
+            </label>
+            <label>
+                Availability countries
+                <div class="country-picker" data-input-name="availability" data-common="US,GB,DE,CA,AU,FI,SE,NO,JP">
+                    <div class="picker-row">
+                        <input type="text" class="country-input" placeholder="Type a country">
+                        <button class="button ghost add-country" type="button">Add</button>
+                    </div>
+                    <div class="picker-actions"></div>
+                    <div class="selected-list"></div>
+                </div>
+            </label>
+            <button class="button" type="submit">Add drink</button>
+        </form>
+    </div>
+
+    <details class="detail-card collapsible">
+        <summary>Edit drinks</summary>
+        <div class="edit-grid">
+            {% for drink in drinks %}
+                <form method="post" action="/admin/drink/{{ drink.id }}" class="edit-card" enctype="multipart/form-data">
+                    <label>
+                        Name
+                        <input type="text" name="name" value="{{ drink.name }}" required>
+                    </label>
+                    <label>
+                        Brand
+                        <select name="brand_id" required>
+                            {% for brand in brands %}
+                                <option value="{{ brand.id }}" {% if brand.id == drink.brand_id %}selected{% endif %}>
+                                    {{ brand.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </label>
+                    <label>
+                        Flavor
+                        <select name="flavor_id" required>
+                            {% for flavor in flavors %}
+                                <option value="{{ flavor.id }}" {% if flavor.id == drink.flavor_id %}selected{% endif %}>
+                                    {{ flavor.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </label>
+                    <label>
+                        Description
+                        <textarea name="description" rows="3">{{ drink.description or '' }}</textarea>
+                    </label>
+                    <label>
+                        Image URL
+                        <input type="text" name="image_url" value="{{ drink.image_url or '' }}">
+                    </label>
+                    <label>
+                        Or upload image
+                        <input type="file" name="image_file" accept="image/*">
+                    </label>
+                    <label>
+                        Availability countries
+                        {% set selected_codes = availability_map[drink.id] if drink.id in availability_map else [] %}
+                        <div class="country-picker" data-input-name="availability" data-common="US,GB,DE,CA,AU,FI,SE,NO,JP"
+                             data-selected="{{ selected_codes | join(',') }}">
+                            <div class="picker-row">
+                                <input type="text" class="country-input" placeholder="Type a country">
+                                <button class="button ghost add-country" type="button">Add</button>
+                            </div>
+                            <div class="picker-actions"></div>
+                            <div class="selected-list"></div>
+                        </div>
+                    </label>
+                    <button class="button ghost" type="submit">Save</button>
+                </form>
+            {% endfor %}
+        </div>
+    </details>
+
+    <details class="detail-card collapsible">
+        <summary>Admin users</summary>
+        <div class="edit-grid">
+            {% for user in users %}
+                <form method="post" action="/admin/user/{{ user.id }}" class="edit-card">
+                    <div>
+                        <strong>{{ user.username }}</strong>
+                        <div class="request-meta">{{ user.country_code }}</div>
+                    </div>
+                    <label class="check">
+                        <input type="checkbox" name="is_admin" value="1" {% if user.is_admin %}checked{% endif %}>
+                        Admin access
+                    </label>
+                    <button class="button ghost" type="submit">Update</button>
+                </form>
+            {% endfor %}
+        </div>
+    </details>
+
+    <details class="detail-card collapsible">
+        <summary>Drink requests</summary>
+        <div class="request-list">
+            {% for req in requests %}
+                <div class="request-card">
+                    <div class="request-head">
+                        <strong>{{ req.drink_name }}</strong>
+                        <form method="post" action="/admin/request/{{ req.id }}" class="inline-form">
+                            <select name="status">
+                                {% for status in request_statuses %}
+                                    <option value="{{ status }}" {% if status == req.status %}selected{% endif %}>
+                                        {{ status }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            <button class="button ghost" type="submit">Save</button>
+                        </form>
+                    </div>
+                    <div class="request-meta">
+                        {{ req.brand_name or "Unknown brand" }} | {{ req.flavor_name or "Unknown flavor" }}
+                    </div>
+                    {% if req.country_codes %}
+                        <div class="request-meta">Countries: {{ req.country_codes }}</div>
+                    {% endif %}
+                    <div class="request-meta">{{ req.created_at }}</div>
+                    {% if req.notes %}
+                        <p>{{ req.notes }}</p>
+                    {% endif %}
+                    {% if req.requester_name %}
+                        <div class="request-meta">Requested by {{ req.requester_name }}</div>
+                    {% endif %}
+                </div>
+            {% else %}
+                <p>No requests yet.</p>
+            {% endfor %}
+        </div>
+    </details>
+</section>
+{% endblock %}

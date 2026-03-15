@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}Drinks{% endblock %}
+{% block main %}
+<section class="page">
+    <div class="page-header">
+        <h1>All Drinks</h1>
+        <p>Browse the full database, filter by brand, flavor, and country availability.</p>
+    </div>
+
+    <form class="filter-bar" method="get">
+        <label>
+            Country
+            <select name="country">
+                {% for country_item in countries %}
+                    <option value="{{ country_item.code }}" {% if country_item.code == country %}selected{% endif %}>
+                        {{ country_item.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </label>
+        <label>
+            Brand
+            <select name="brand">
+                <option value="">All</option>
+                {% for brand in brands %}
+                    <option value="{{ brand.id }}" {% if brand.id == brand_filter %}selected{% endif %}>
+                        {{ brand.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </label>
+        <label>
+            Flavor
+            <select name="flavor">
+                <option value="">All</option>
+                {% for flavor in flavors %}
+                    <option value="{{ flavor.id }}" {% if flavor.id == flavor_filter %}selected{% endif %}>
+                        {{ flavor.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </label>
+        <label class="check">
+            <input type="checkbox" name="available" value="1" {% if only_available %}checked{% endif %}>
+            Only available in selected country
+        </label>
+        <button class="button" type="submit">Apply</button>
+    </form>
+
+    <div class="card-grid">
+        {% for drink in drinks %}
+            <div class="card">
+                {% if drink.image_url %}
+                    <img class="drink-image" src="{{ drink.image_url }}" alt="{{ drink.name }}">
+                {% endif %}
+                <div class="card-title">
+                    <a href="/drink/{{ drink.id }}">{{ drink.name }}</a>
+                </div>
+                <div class="card-meta">
+                    {% if drink.brand_logo %}
+                        <img class="brand-logo" src="{{ drink.brand_logo }}" alt="{{ drink.brand }} logo">
+                    {% endif %}
+                    {{ drink.brand }} | {{ drink.flavor }}
+                </div>
+                <p class="card-body">{{ drink.description or "No description yet." }}</p>
+                <div class="card-stats">
+                    <span>Global: {{ '%.1f'|format(drink.avg_global or 0) }}</span>
+                    <span>Local ({{ country }}): {{ '%.1f'|format(drink.avg_local or 0) }}</span>
+                    <span>{{ drink.rating_count }} ratings</span>
+                </div>
+            </div>
+        {% else %}
+            <p>No drinks match those filters.</p>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

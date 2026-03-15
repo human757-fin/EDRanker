@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Issues{% endblock %}
+{% block main %}
+<section class="page narrow">
+    <div class="page-header">
+        <h1>Issues & Updates</h1>
+        <p>Report bugs or request updates. We'll review and track them here.</p>
+    </div>
+
+    <div class="detail-card">
+        <form method="post" class="form-stack">
+            <label>
+                Type
+                <select name="type" required>
+                    <option value="bug">Bug</option>
+                    <option value="update">Update request</option>
+                </select>
+            </label>
+            <label>
+                Title
+                <input type="text" name="title" placeholder="Short summary" required>
+            </label>
+            <label>
+                Description
+                <textarea name="description" rows="4" placeholder="Details, steps to reproduce, or update idea"></textarea>
+            </label>
+            <button class="button" type="submit">Submit issue</button>
+        </form>
+    </div>
+
+    <div class="detail-card">
+        <h3>Recent submissions</h3>
+        <div class="issue-list">
+            {% for issue in issues %}
+                <div class="issue-card">
+                    <div class="issue-head">
+                        <strong>{{ issue.title }}</strong>
+                        <span class="chip">{{ issue.type }}</span>
+                        <span class="chip">{{ issue.status }}</span>
+                    </div>
+                    {% if issue.description %}
+                        <p class="rating-body">{{ issue.description }}</p>
+                    {% endif %}
+                    <div class="request-meta">{{ issue.created_at }}</div>
+                </div>
+            {% else %}
+                <p>No issues yet.</p>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,3 @@
+static/uploads/*
+*.db
+set_admin.sh

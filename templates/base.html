@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% endblock %} | EDRanker</title>
+    <link href="{{url_for('static', filename='style.css')}}" rel="stylesheet">
+    {% block head %}{% endblock %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/livereload-js/3.1.0/livereload.min.js"></script>
+</head>
+
+<body>
+    <nav>
+        <div class="nav-left">
+            <a class="nav-link" href="/">Home</a>
+            <div class="nav-dropdown">
+                <a class="nav-link dropdownbtn" href="/top">Top</a>
+                <div class="dropdown-content">
+                    <a href="/top/best" class="nav-dropdown-link">Top 10 Best</a>
+                    <a href="/top/worst" class="nav-dropdown-link">Top 10 Worst</a>
+                    <a href="/top/local" class="nav-dropdown-link">Top 10 Local</a>
+                </div>
+            </div>
+            <a class="nav-link" href="/drinks">Drinks</a>
+            <a class="nav-link" href="/brands">Brands</a>
+            <a class="nav-link" href="/flavors">Flavors</a>
+            <a class="nav-link" href="/lists">Lists</a>
+            <a class="nav-link" href="/request">Request</a>
+            <a class="nav-link" href="/issues">Issues</a>
+        </div>
+        <div class="nav-right">
+            {% if current_user %}
+                <span class="nav-user">{{ current_user.username }} ({{ current_user.country_code }})</span>
+                {% if current_user.is_admin %}
+                    <a class="nav-link" href="/admin">Admin</a>
+                {% endif %}
+                <a class="nav-link" href="/logout">Logout</a>
+            {% else %}
+                <a class="nav-link" href="/login">Login</a>
+                <a class="nav-link" href="/register">Register</a>
+            {% endif %}
+        </div>
+    </nav>
+    <div class="spacer"></div>
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="flash-list">
+                {% for message in messages %}
+                    <div class="flash">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+    {% block main %}{% endblock %}
+    <footer class="footer">
+        <div class="footer-content">
+            <div>
+                <strong>EDRanker</strong>
+                <div class="footer-muted">Energy drink rankings by the community.</div>
+            </div>
+            <div class="footer-links">
+                <span>© {{ current_year }} EDRanker</span>
+                <span>All product names, logos, and brands are property of their respective owners.</span>
+                <span>Built by {{ author_name }}</span>
+            </div>
+        </div>
+    </footer>
+    <script>
+        (function () {
+            var userIsLoggedIn = {{ 'true' if current_user else 'false' }};
+            var hasCountryQuery = new URLSearchParams(window.location.search).has('country');
+            if (userIsLoggedIn || hasCountryQuery) {
+                return;
+            }
+            var redirectTo = window.location.pathname + window.location.search;
+            function fallbackLocale() {
+                var locale = navigator.language || '';
+                var localeMap = {
+                    'en-US': 'US',
+                    'en-GB': 'GB',
+                    'fi-FI': 'FI',
+                    'sv-SE': 'SE',
+                    'de-DE': 'DE',
+                    'ja-JP': 'JP',
+                    'pt-BR': 'BR'
+                };
+                var country = localeMap[locale] || 'US';
+                fetch('/set-country/' + country + '?next=' + encodeURIComponent(redirectTo))
+                    .catch(function () {});
+            }
+            try {
+                fetch('/geo')
+                    .then(function (response) { return response.json(); })
+                    .then(function (data) {
+                        if (data && data.already_set) {
+                            return;
+                        }
+                        if (data && data.country_code) {
+                            fetch('/set-country/' + data.country_code + '?next=' + encodeURIComponent(redirectTo))
+                                .catch(function () {});
+                        } else {
+                            fallbackLocale();
+                        }
+                    })
+                    .catch(function () { fallbackLocale(); });
+            } catch (err) {
+                fallbackLocale();
+            }
+        })();
+    </script>
+    <script>
+        (function () {
+            var countryData = {{ countries | tojson }};
+            function normalize(value) {
+                return value.trim().toLowerCase();
+            }
+            function setupPicker(picker) {
+                var input = picker.querySelector(".country-input");
+                var addBtn = picker.querySelector(".add-country");
+                var list = picker.querySelector(".selected-list");
+                var actions = picker.querySelector(".picker-actions");
+                var inputName = picker.dataset.inputName;
+                var selectedCodes = new Set();
+
+                function renderButtons(commonCodes) {
+                    actions.innerHTML = "";
+                    var commonLabel = document.createElement("span");
+                    commonLabel.className = "muted";
+                    commonLabel.textContent = "Common:";
+                    actions.appendChild(commonLabel);
+
+                    commonCodes.forEach(function (code) {
+                        var country = countryData.find(function (c) { return c.code === code; });
+                        if (!country) { return; }
+                        var btn = document.createElement("button");
+                        btn.type = "button";
+                        btn.className = "chip-button";
+                        btn.textContent = country.name;
+                        btn.addEventListener("click", function () {
+                            addCountry(code);
+                        });
+                        actions.appendChild(btn);
+                    });
+
+                    var addCommon = document.createElement("button");
+                    addCommon.type = "button";
+                    addCommon.className = "chip-button ghost";
+                    addCommon.textContent = "Add common";
+                    addCommon.addEventListener("click", function () {
+                        commonCodes.forEach(function (code) { addCountry(code); });
+                    });
+                    actions.appendChild(addCommon);
+
+                    var clearBtn = document.createElement("button");
+                    clearBtn.type = "button";
+                    clearBtn.className = "chip-button danger";
+                    clearBtn.textContent = "Clear";
+                    clearBtn.addEventListener("click", function () {
+                        selectedCodes.clear();
+                        renderSelected();
+                    });
+                    actions.appendChild(clearBtn);
+                }
+
+                function renderSelected() {
+                    list.innerHTML = "";
+                    selectedCodes.forEach(function (code) {
+                        var country = countryData.find(function (c) { return c.code === code; });
+                        var item = document.createElement("div");
+                        item.className = "selected-item";
+                        var label = document.createElement("span");
+                        label.textContent = country ? country.name : code;
+                        var remove = document.createElement("button");
+                        remove.type = "button";
+                        remove.className = "chip-button danger";
+                        remove.textContent = "Remove";
+                        remove.addEventListener("click", function () {
+                            selectedCodes.delete(code);
+                            renderSelected();
+                        });
+                        var hidden = document.createElement("input");
+                        hidden.type = "hidden";
+                        hidden.name = inputName;
+                        hidden.value = code;
+                        item.appendChild(label);
+                        item.appendChild(remove);
+                        item.appendChild(hidden);
+                        list.appendChild(item);
+                    });
+                }
+
+                function addCountry(code) {
+                    if (!code) { return; }
+                    if (!selectedCodes.has(code)) {
+                        selectedCodes.add(code);
+                        renderSelected();
+                    }
+                }
+
+                function findCountryByName(value) {
+                    var lower = normalize(value);
+                    var found = countryData.find(function (c) {
+                        return normalize(c.name) === lower || normalize(c.code) === lower;
+                    });
+                    return found ? found.code : null;
+                }
+
+                input.addEventListener("input", function () {
+                    var query = normalize(input.value);
+                    if (!query) { return; }
+                    var matches = countryData.filter(function (c) {
+                        return normalize(c.name).includes(query) || normalize(c.code).includes(query);
+                    }).slice(0, 6);
+                    var datalistId = input.getAttribute("list");
+                    if (!datalistId) {
+                        datalistId = "country-list-" + Math.random().toString(36).slice(2, 8);
+                        input.setAttribute("list", datalistId);
+                        var datalist = document.createElement("datalist");
+                        datalist.id = datalistId;
+                        input.parentNode.appendChild(datalist);
+                    }
+                    var listEl = document.getElementById(datalistId);
+                    listEl.innerHTML = "";
+                    matches.forEach(function (c) {
+                        var option = document.createElement("option");
+                        option.value = c.name;
+                        listEl.appendChild(option);
+                    });
+                });
+
+                function handleAdd() {
+                    var code = findCountryByName(input.value);
+                    if (!code && input.value) {
+                        var fallback = input.value.trim().toUpperCase();
+                        if (countryData.find(function (c) { return c.code === fallback; })) {
+                            code = fallback;
+                        }
+                    }
+                    if (code) {
+                        addCountry(code);
+                        input.value = "";
+                    }
+                }
+
+                addBtn.addEventListener("click", handleAdd);
+                input.addEventListener("keydown", function (event) {
+                    if (event.key === "Enter") {
+                        event.preventDefault();
+                        handleAdd();
+                    }
+                });
+
+                var preselected = (picker.dataset.selected || "").split(",").map(function (v) { return v.trim(); }).filter(Boolean);
+                preselected.forEach(function (code) { selectedCodes.add(code); });
+                var commonCodes = (picker.dataset.common || "").split(",").map(function (v) { return v.trim(); }).filter(Boolean);
+                renderButtons(commonCodes);
+                renderSelected();
+            }
+
+            document.querySelectorAll(".country-picker").forEach(setupPicker);
+        })();
+    </script>
+</body>
+
+</html>

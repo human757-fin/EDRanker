@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block main %}
+<section class="hero">
+    <div>
+        <h1 class="title">Welcome to EDRanker</h1>
+        <p class="subtitle">Discover what energy drink fans think around the world.</p>
+        <div class="hero-actions">
+            <a class="button" href="/drinks">Browse Drinks</a>
+            <a class="button ghost" href="/top">See Top Lists</a>
+        </div>
+    </div>
+    <div class="hero-card">
+        <h3>Local rankings</h3>
+        <p>See ratings by country, brand, and flavor.</p>
+        <ul>
+            <li>Global vs local scores</li>
+            <li>Country-only releases</li>
+            <li>Brand and flavor pages</li>
+        </ul>
+    </div>
+</section>
+
+<section class="split">
+    <div>
+        {% if not current_user %}
+        <h2>Rate with an account</h2>
+        <p>Viewing is open to everyone. Log in to rate and share reviews.</p>
+        <a class="button" href="/register">Create an account</a>
+        {% endif %}
+    </div>
+    <div>
+        <h2>Explore by country</h2>
+        <div class="country-grid">
+            {% for country in countries %}
+            <a class="chip" href="/country/{{ country.code }}">{{ country.name }}</a>
+            {% endfor %}
+        </div>
+    </div>
+    <div>
+        <h2>Request a drink</h2>
+        <p>Missing something? Send a request.</p>
+        <a class="button ghost" href="/request">Request a drink</a>
+    </div>
+</section>
+{% endblock %}

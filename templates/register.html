@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Register{% endblock %}
+{% block main %}
+<section class="page narrow">
+    <div class="page-header">
+        <h1>Create account</h1>
+        <p>Viewing is free. Create an account to submit ratings.</p>
+    </div>
+    <form method="post" class="form-stack">
+        <label>
+            Username
+            <input type="text" name="username" required>
+        </label>
+        <label>
+            Password
+            <input type="password" name="password" required>
+        </label>
+        <label>
+            Country
+            <select name="country_code" required>
+                <option value="">Select</option>
+                {% for country in countries %}
+                    <option value="{{ country.code }}">{{ country.name }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <button class="button" type="submit">Create account</button>
+    </form>
+</section>
+{% endblock %}

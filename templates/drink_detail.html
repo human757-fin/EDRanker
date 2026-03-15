@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}{{ drink.name }}{% endblock %}
+{% block main %}
+<section class="page">
+    <div class="page-header">
+        <h1>{{ drink.name }}</h1>
+        <p>
+            {% if drink.brand_logo %}
+                <img class="brand-logo large" src="{{ drink.brand_logo }}" alt="{{ drink.brand }} logo">
+            {% endif %}
+            {{ drink.brand }} | {{ drink.flavor }}
+        </p>
+    </div>
+
+    <div class="detail-grid">
+        <div class="detail-card drink-hero">
+            {% if drink.image_url %}
+                <img class="drink-image hero" src="{{ drink.image_url }}" alt="{{ drink.name }}">
+            {% endif %}
+            <div class="drink-copy">
+                <h3>Overview</h3>
+                <p class="drink-description">{{ drink.description or "No description yet." }}</p>
+                <div class="stats">
+                    <div>
+                        <strong>Global score</strong>
+                        <span>{{ '%.1f'|format(drink.avg_global or 0) }}</span>
+                    </div>
+                    <div>
+                        <strong>Local ({{ country }})</strong>
+                        <span>{{ '%.1f'|format(drink.avg_local or 0) }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="detail-card">
+            <h3>Availability</h3>
+            <div class="chip-row">
+                {% for row in availability %}
+                    <span class="chip">{{ country_map.get(row.country_code, row.country_code) }}</span>
+                {% else %}
+                    <span class="chip">No data</span>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="detail-grid">
+        <div class="detail-card">
+            <h3>Rate this drink</h3>
+            {% if current_user %}
+                <form method="post" action="/rate/{{ drink.id }}" class="form-stack">
+                    <label>
+                        Score (1-10)
+                        <input type="number" name="score" min="0" max="10" step="0.1" required value="{{ user_rating.score if user_rating }}">
+                    </label>
+                    <label>
+                        Review
+                        <textarea name="review" rows="3">{{ user_rating.review if user_rating }}</textarea>
+                    </label>
+                    <button class="button" type="submit">Save rating</button>
+                </form>
+                {% if user_rating %}
+                    <form method="post" action="/rate/{{ drink.id }}/delete" class="inline-form delete-rating">
+                        <button class="button danger" type="submit">Delete my rating</button>
+                    </form>
+                {% endif %}
+            {% else %}
+                <p>You need an account to rate drinks.</p>
+                <a class="button" href="/login?next=/drink/{{ drink.id }}">Login to rate</a>
+            {% endif %}
+        </div>
+
+        <div class="detail-card">
+            <h3>Recent ratings</h3>
+            {% for rating in ratings %}
+                <div class="rating">
+                    <div class="rating-head">
+                        <strong>{{ rating.username }}</strong>
+                        <span>{{ rating.score }}/10</span>
+                        <span>{{ rating.country_code }}</span>
+                    </div>
+                    <p class="rating-body">{{ rating.review or "No review text." }}</p>
+                    <div class="rating-meta">{{ rating.created_at }}</div>
+                </div>
+            {% else %}
+                <p>No ratings yet. Be the first.</p>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

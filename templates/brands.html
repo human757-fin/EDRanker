@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Brands{% endblock %}
+{% block main %}
+<section class="page">
+    <div class="page-header">
+        <h1>Brands</h1>
+        <p>Explore all brands in the database.</p>
+    </div>
+    <div class="list-grid">
+        {% for brand in brands %}
+            <a class="list-card tile" href="/brand/{{ brand.id }}">
+                {% if brand.logo_url %}
+                    <img class="brand-logo xl" src="{{ brand.logo_url }}" alt="{{ brand.name }} logo">
+                {% endif %}
+                <span class="tile-title">{{ brand.name }}</span>
+                <span class="tile-action">See drinks</span>
+            </a>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

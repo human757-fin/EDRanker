@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Request a Drink{% endblock %}
+{% block main %}
+<section class="page narrow request-page">
+    <div class="page-header">
+        <h1>Request a drink</h1>
+        <p>Missing a flavor or region-exclusive can? Tell us what to add.</p>
+    </div>
+    <div class="detail-card">
+        <form method="post" class="form-stack">
+            <div class="two-col">
+                <label>
+                    Your name (optional)
+                    <input type="text" name="requester_name" placeholder="Alex">
+                </label>
+                <label>
+                    Drink name
+                    <input type="text" name="drink_name" placeholder="Brand X Midnight" required>
+                </label>
+            </div>
+            <div class="two-col">
+                <label>
+                    Brand name
+                    <input type="text" name="brand_name" placeholder="Brand X">
+                </label>
+                <label>
+                    Flavor name
+                    <input type="text" name="flavor_name" placeholder="Black Cherry">
+                </label>
+            </div>
+            <label>
+                Countries (optional)
+                <div class="country-picker" data-input-name="country_codes" data-common="US,GB,DE,CA,AU,FI,SE,NO,JP">
+                    <div class="picker-row">
+                        <input type="text" class="country-input" placeholder="Type a country">
+                        <button class="button ghost add-country" type="button">Add</button>
+                    </div>
+                    <div class="picker-actions"></div>
+                    <div class="selected-list"></div>
+                </div>
+            </label>
+            <label>
+                Notes
+                <textarea name="notes" rows="5" placeholder="Where did you find it? Is it limited to a country?"></textarea>
+            </label>
+            <div class="form-actions">
+                <button class="button" type="submit">Submit request</button>
+                <span class="muted">We review new requests daily.</span>
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %}

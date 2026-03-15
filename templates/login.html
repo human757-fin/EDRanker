@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Login{% endblock %}
+{% block main %}
+<section class="page narrow">
+    <div class="page-header">
+        <h1>Login</h1>
+        <p>Log in to rate drinks.</p>
+    </div>
+    <form method="post" class="form-stack">
+        <label>
+            Username
+            <input type="text" name="username" required>
+        </label>
+        <label>
+            Password
+            <input type="password" name="password" required>
+        </label>
+        <button class="button" type="submit">Login</button>
+    </form>
+</section>
+{% endblock %}

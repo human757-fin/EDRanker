@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block main %}
+<section class="page narrow">
+    <div class="page-header">
+        <h1>{{ title }}</h1>
+        {% if country %}<p>Based on ratings from {{ country }}.</p>{% endif %}
+    </div>
+    <div class="table">
+        <div class="table-row table-head">
+            <span>#</span>
+            <span>Drink</span>
+            <span>Brand</span>
+            <span>Avg</span>
+            <span>Ratings</span>
+        </div>
+        {% for row in rows %}
+            <div class="table-row">
+                <span>{{ loop.index }}</span>
+                <span class="drink-cell">
+                    {% if row.image_url %}
+                        <img class="drink-thumb" src="{{ row.image_url }}" alt="{{ row.name }}">
+                    {% endif %}
+                    <a href="/drink/{{ row.id }}">{{ row.name }}</a>
+                </span>
+                <span>
+                    {% if row.brand_logo %}
+                        <img class="brand-logo" src="{{ row.brand_logo }}" alt="{{ row.brand }} logo">
+                    {% endif %}
+                    {{ row.brand }}
+                </span>
+                <span>{{ '%.1f'|format(row.avg_score or 0) }}</span>
+                <span>{{ row.total }}</span>
+            </div>
+        {% else %}
+            <p>No ratings yet.</p>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}
